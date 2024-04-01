@@ -60,16 +60,26 @@
 
     Since the data that would be necessary to work on this topic is currently not available, this project aims to
     investigate a topic that is relevant to this future effort.
-    The idea is inspired by approaches I already used in assignment three.
-    There I tried to improve the performance of few-shot prompting by enhancing the prompt with a step-by-step guide
-    how to arrive at a solution and enriching the provided few-shot examples with a chain-of-though like reasoning based
-    on the guide.
-    The CoT reasoning was created by GPT-4.
+    There are three main topics that this project addresses:
+    \begin{enumerate}
+        \item What is the most efficient way to transform a small training dataset into performance of a model?
+        \item What is the best way to teach a model to follow given guidelines?
+        \item How do chain-of-thought style prompting and fine-tuning relate to each other?
+    \end{enumerate}
 
-    It was very interesting for me to see, that in context learning approaches performed much worse than the ones based
-    on fine-tuning.
-    This leads me to the question, whether enriching a dataset by a guide and CoT style logic helps during fine-tuning,
+    The main idea of this project is inspired by approaches I already used in assignment three.
+    There I tried to improve the performance of few-shot prompting by introducing a dataset specifiv step-by-step guide.
+    This guide was created by GPT-4 based on 10 given examples.
+    Based on this guide the examples used for few-shot prompting where enriched by a step-by-step solution based on the guide.
+    This resulted in dataset specific chain-of-though like reasoning that was introduced into the prompt.
+
+    It was very interesting for me to see, that this in context learning approache still performed much worse than
+    approaches by other students based on fine-tuning.
+    This leads me to the question, whether enriching a dataset by a guide and CoT-style logic helps during fine-tuning,
     which is now the topic of this project.
+
+    Literature related to this topic can be found in
+    \cite{chen_learning_2023, chen_fireact_2023, hu_lora_2021, dettmers_qlora_2023}.
 
 
     \section{Hypotheses}\label{S:hypothesis}
@@ -149,6 +159,7 @@
         \item The model is open-source and has a permissible license
         \item It represents a good tradeoff between performance and size
         \item Using QLoRa \cite{dettmers_qlora_2023}, the model can be fine-tuned on affordable hardware, comparable to a T4-GPU from Nvidia
+        \item It has good support for the most important european languages, which is relevant for the sector I am working in
     \end{itemize}
 
     For the trainer model $\mathcal{M}$, the newest version of GPT-4 (\texttt{gpt-4-0125-preview}) is used via the
@@ -174,8 +185,8 @@
 
     \section{Summary of Progress}
 
-    I have finished going through the steps outlined in section \ref{S:reasoning}. The first visualizations of the results
-    can be seen in figures \ref{fig:acc_vs_epoch} and \ref{fig:acc_vs_data}.
+    I have finished going through the steps outlined in section \ref{S:reasoning}.
+    The first visualizations of the results can be seen in figure \ref{fig:acc_vs_data_and_epoch}.
 
     Unfortunately the results so far do not provide strong support for the hypothesis stated in section \ref{S:hypothesis}.
     Even though the models trained on $D^\prime$ show better performance on very small fine-tuning datasets and in early
@@ -197,25 +208,22 @@
         benefit from this approach?
     \end{itemize}
 
-    \begin{figure}
+    \begin{figure*}
         \centering
-        \includegraphics[width=0.45\columnwidth]{../plots/accuracy_vs_epoch.pdf}
-        \caption{The accuracy of the Mistral-7B models at different points during the fine-tuning.
-        \emph{Base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
-        refers to the CoT-enhanced dataset $D^\prime$.
+        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_epoch.pdf}
+%        \caption{The accuracy of the Mistral-7B models at different points during the fine-tuning.
+%        \emph{Base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
+%        refers to the CoT-enhanced dataset $D^\prime$.
+%        }
+        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_data.pdf}
+        \caption{
+        \textbf{Left:} the accuracy of the Mistral-7B models at different points during the fine-tuning.
+        \textbf{Right:} the accuracy of the Mistral-7B models with respect to the size of the dataset used for fine-tuning.\\
+        In both plots \emph{base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
+        refers to the CoT-enhanced dataset $D^\prime$. The latter case is shown by the dashed lines.
         }
-        \label{fig:acc_vs_epoch}
-    \end{figure}
-
-    \begin{figure}
-        \centering
-        \includegraphics[width=\columnwidth]{../plots/accuracy_vs_data.pdf}
-        \caption{The accuracy of the Mistral-7B models with respect to the size of the dataset used for fine-tuning.
-        \emph{Base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
-        refers to the CoT-enhanced dataset $D^\prime$.
-        }
-        \label{fig:acc_vs_data}
-    \end{figure}
+        \label{fig:acc_vs_data_and_epoch}
+    \end{figure*}
 
     % Entries for the entire Anthology, followed by custom entries
     \bibliography{anthology,custom,julian}
@@ -223,7 +231,10 @@
     \appendix
 
 
-    \section{Prompts and guide}\label{sec:appendix}
+    \section{Prompts used throughout the project}\label{sec:appendix}
+    Throughout this project, specific prompts are used to achieve intermediary results or for training and inference.
+    These are reported here for the sake of reproducibility and are shown in figures \ref{fig:guide_prompt},
+    \ref{fig:recogs_guide}, \ref{fig:gpt4_guide} and \ref{fig:prompt_using_guide}.
 
     \begin{figure*}
         \small
