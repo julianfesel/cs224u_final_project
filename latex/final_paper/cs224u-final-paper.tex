@@ -124,10 +124,10 @@
     \end{figure}
 
 
-    \section{Model}
+    \section{Model}\label{S:model}
     %    Flesh out your own approach, perhaps amplifying themes from the `Prior lit' section.
     As the base model $M$ that is fine-tuned, a Mistral-7B model is used \cite{jiang_mistral_2023}.
-    Specifically, an instruct tuned and 4-bit quantized version of the model is chosen.
+    Specifically, an instruct tuned and 4-bit quantized version of the model is chosen \cite{unsloth_unslothmistral-7b-instruct-v02-bnb-4bit_2024}.
     The reasons behind this choice are the following:
     \begin{itemize}
         \item The model is open-source and has a permissible license
@@ -140,58 +140,104 @@
     commercial API-offering of OpenAI \cite{openai_gpt-4_2024}.
 
 
-    \section{Methods}
+    \section{Methods}\label{S:methods}
 %    The experimental approach, including descriptions of metrics, baseline models, etc. Details about hyperparameters, optimization choices, etc., are probably best given in appendices, unless they are central to the arguments.
 
     The project can be segmented into the following steps:
 
     \begin{enumerate}
         \item Create a small random sample $D_\mathrm{guide}$ of 20 datapoints from the training segment of the renumbered ReCOGS dataset.
-        \item Using a handcrafted prompt and GPT-4 (see figure \ref{fig:guide_prompt} for details), generate a step-by-step guide $\mathcal{G}$ from $D_\mathrm{sub}$.
+
+        \item\label{step:gpt4_guide} Using a handcrafted prompt and GPT-4 (see figure \ref{fig:guide_prompt} for details), generate a step-by-step guide $\mathcal{G}$ from $D_\mathrm{sub}$.
+
         \item Create a second small, random subset $D_\mathrm{train}$ of 200 datapoints from the training segment of the renumbered ReCOGS dataset.
-        \item Use a handcrafted prompt together with the guide $\mathcal{G}$ to enrich $D_\mathrm{train}$
-        with CoT-style reasoning using GPT-4 (see figure \ref{fig:guide_prompt} for details).
+
+        \item\label{step:cot-gen} Use a handcrafted prompt together with the guide $\mathcal{G}$ to enrich $D_\mathrm{train}$
+        with CoT-style reasoning using GPT-4 (see figure \ref{fig:prompt_generate_cot_solution} for details).
         This leads to a new training dataset $D_\mathrm{train}^\prime$.
-        \item Fine-tune two different Mistral model on $D_\mathrm{train}$ and $D_\mathrm{train}^\prime$ for 10 epochs.
+
+        \item Filter the dataset $D_\mathrm{train}^\prime$ for step-by-step solutions that result in the correct logical form.
+
+        \item Fine-tune separate models $M$ (see \ref{S:model}) on $D_\mathrm{train}$ and $D_\mathrm{train}^\prime$ for 10 epochs, while
+        saving a checkpoint of the model after each epoch.
+        The fine-tuning is only performed on the part of the data, that corresponds to the generation of the model, not the prompt.
+
+        For $D_\mathrm{train}$, the model is simply presented the pairs of sentence and logical form.
+        For $D_\mathrm{train}^\prime$, the model is trained with a specific prompt used for inference later, that includes the
+        guide $\mathcal{G}$, the sentence and the step-by-step solution generated previously by gpt-4 in step \ref{step:cot-gen}
+        (see figure \ref{fig:prompt_using_guide} for the wording of the prompt).
+
         The models are fine-tuned once with the full datasets and then also with subsets of 10, 50 and 100 samples.
-        \item Evaluate each model on the same sample of 200 datapoints from the gen segment of the ReCOGS dataset.
-        \item Visualize the accuracy of the different models at various stages during the fine-tuning.
+        This results in a total of six different models.
+
+        \item Create an evaluation dataset $D_\mathrm{eval}$ of 200 random datapoints from the gen segment of the ReCOGS dataset.
+
+        \item Generate logical forms for $D_\mathrm{eval}$ with each of the six trained models using checkpoints from epochs 1, 5, and 10.
+
+        \item Evaluate the accuracy for each of the generated sets, using the exact-match metric, which was introduced in
+        assignment three.
+%
+%        \item Visualize the accuracy of the different models at various stages during the fine-tuning.
     \end{enumerate}
 
-
-    The evaluation of the hypothesis stated in \ref{S:hypothesis} is based primarily on the exact-match metric as used
-    in the assignment.
-    Using this metric the accuracy on a hold-out testset is calculated for various fine-tuned models.
-    This allows to compare the performance of the models during the training at specific epochs and for different sizes
-    of training datasets.
-    This comparison is then used to conclude on the initial hypothesis.
+%    The evaluation of the hypothesis stated in \ref{S:hypothesis} is based primarily on the exact-match metric as used
+%    in the assignment.
+%    Using this metric the accuracy on a hold-out testset is calculated for various fine-tuned models.
+%    This allows to compare the performance of the models during the training at specific epochs and for different sizes
+%    of training datasets.
+%    This comparison is then used to conclude on the initial hypothesis.
 
 
     \section{Results}
 %    A no-nonsense report of what happened.
+    The result of the generated step-by-step guide (section \ref{S:methods} step \ref{step:gpt4_guide})
+    $\mathcal{G}$ using $\mathcal{M}$ is shown in figure \ref{fig:gpt4_recogs_guide}.
+    Apart from some manual reformatting, the text is shown as it was generated by GPT-4.
+    Importantly, no changes have been made to the text, to correct for factual errors of the guide.
+    For example, GPT-4 did not capture correctly the use of the "\texttt{*}" sign to mark definite nouns.
+    These mistakes are deliberately left in place, since it cannot be assumed,
+    that such mistakes can always be removed manually.
 
-    I have finished going through the steps outlined in section \ref{S:reasoning}.
-    The first visualizations of the results can be seen in figure \ref{fig:acc_vs_data_and_epoch}.
+    An example of a generated step-by-step solution (section \ref{S:methods} step \ref{step:cot-gen}) on the basis of this guide,
+    can be seen in figure \ref{fig:gpt4_cot_solution_example}.
+    While the prompt used for the generation is shown in figure \ref{fig:prompt_generate_cot_solution}.
+    It is important to note, that the ground truth logical form is given to the model in the prompt.
+    Nevertheless, $15\,\%$ of the generated solutions do not return the correct form in the last step.
+    These solutions are removed from the training dataset before fine-tuning, which results in 170 correct samples.
 
-    Unfortunately the results so far do not provide strong support for the hypothesis stated in section \ref{S:hypothesis}.
-    Even though the models trained on $D^\prime$ show better performance on very small fine-tuning datasets and in early
-    epochs, this advantage vanishes for larger --- but still small --- training datasets.
+    Using quantized versions of Mistral \cite{unsloth_unslothmistral-7b-instruct-v02-bnb-4bit_2024} and LoRA for fine-tuning,
+    it was possible use a single T4 GPU for this task.
+    On the full $D_\mathrm{train}$ dataset, fine-tuning for 10 epochs took around 20 minutes and around 90 minutes
+    for $D_\mathrm{train}^\prime$.
+    Interestingly, the durations for generating the evaluation samples on $D_\mathrm{eval}$ and $D_\mathrm{eval}^\prime$
+    are in the same order of magnitude as the fine-tuning.
 
-    However, the results are interesting and informative, and allow for a thorough discussion and analysis.
-    So far, there are no critical blockers in sight and the most important parts including the generation of the derived
-    dataset and fine-tuning are already done.
+    For the evaluation on $D_\mathrm{eval}$, the generated logical forms are simply taken as is and compared to the ground
+    truth using the exact-match metric mentioned in \ref{S:methods}.
+    For $D_\mathrm{eval}^\prime$, the generated step-by-step solutions are first split at the last step and the remainder
+    interpreted as the logical form.
+    Apart from this, the evaluation is the same as for $D_\mathrm{eval}$.
 
-    The next steps of the project will focus on writing the final report and a careful analysis of the results so far.
-    They can be summarized as:
-    \begin{itemize}
-        \item Perform a detailed analysis of the results.
-        \item Evaluate the performance of the approach with step-by-step prompt without any fine-tuning
-        and add it to the visualizations.
-        \item Analyse the performance with respect to the number of tokens used for training.
-        \item Compare the costs and fine-tuning durations of the different fine-tuning regimes.
-        \item Add a discussion on the pros and cons of the approach discussed in this project. Which applications might
-        benefit from this approach?
-    \end{itemize}
+    The results of the evaluation are visualized in figures  \ref{fig:acc_vs_data_and_epoch} and  \ref{fig:acc_vs_token}.
+%    Unfortunately the results so far do not provide strong support for the hypothesis stated in section \ref{S:hypothesis}.
+%    Even though the models trained on $D^\prime$ show better performance on very small fine-tuning datasets and in early
+%    epochs, this advantage vanishes for larger --- but still small --- training datasets.
+%
+%    However, the results are interesting and informative, and allow for a thorough discussion and analysis.
+%    So far, there are no critical blockers in sight and the most important parts including the generation of the derived
+%    dataset and fine-tuning are already done.
+%
+%    The next steps of the project will focus on writing the final report and a careful analysis of the results so far.
+%    They can be summarized as:
+%    \begin{itemize}
+%        \item Perform a detailed analysis of the results.
+%        \item Evaluate the performance of the approach with step-by-step prompt without any fine-tuning
+%        and add it to the visualizations.
+%        \item Analyse the performance with respect to the number of tokens used for training.
+%        \item Compare the costs and fine-tuning durations of the different fine-tuning regimes.
+%        \item Add a discussion on the pros and cons of the approach discussed in this project. Which applications might
+%        benefit from this approach?
+%    \end{itemize}
 
     \begin{figure*}
         \centering
@@ -263,13 +309,14 @@
     \section{Prompts used throughout the project}\label{sec:appendix}
     Throughout this project, specific prompts are used to achieve intermediary results or for training and inference.
     These are reported here for the sake of reproducibility and are shown in figures \ref{fig:guide_prompt},
-    \ref{fig:recogs_guide}, \ref{fig:prompt_generate_cot_solution}, \ref{fig:gpt4_guide} and \ref{fig:prompt_using_guide}.
+    \ref{fig:gpt4_recogs_guide}, \ref{fig:prompt_generate_cot_solution}, \ref{fig:gpt4_cot_solution_example} and \ref{fig:prompt_using_guide}.
 
     \begin{figure*}
         \small
         \texttt{You must come up with a general step by step guide, how to create the logical form from a given sentence.\\
         The guide should also explain the syntax and symbols that the specific logical form requires.\\
-        The guide must be compact and use only as many words as are needed to cover all necessary rules. It must not contain any markdown formatting.\\
+        The guide must be compact and use only as many words as are needed to cover all necessary rules.\\
+        It must not contain any markdown formatting.\\
         The last step of the guide should only return the full correct logical form.\\
         \\
         Using one of the example pairs, give a demonstration how you use the guide to convert a sentence into its correct logical form.\\
@@ -333,7 +380,7 @@ Step 5: Represent the logical form Noah ( 1 ); donut ( 2 ); bear ( 3 );
     sell ( 4 ) AND agent ( 4 , 1) AND theme ( 4 , 2) AND recipient ( 4 , 3 )
         \end{verbatim}
         \caption{The step-by-step guide generated by GPT-4 for the ReCOGS dataset.}
-        \label{fig:recogs_guide}
+        \label{fig:gpt4_recogs_guide}
     \end{figure*}
 
     \begin{figure*}
@@ -346,10 +393,12 @@ Step 5: Represent the logical form Noah ( 1 ); donut ( 2 ); bear ( 3 );
             For support, you are also given a demonstration of how to use the step-by-step guide.\\
             -----\\
             Step by step guide and demonstration:\\
-            {\color{red}\{The step-by-step guide generated by GPT-4 is inserted here (see fig. \ref{fig:recogs_guide})\}}\\
+            {\color{red}\{The step-by-step guide generated by GPT-4 is inserted here (see fig. \ref{fig:gpt4_recogs_guide})\}.}\\
             -----\\
             Sentence:\\
-            {\color{red}\{The sentence for which a step-by-step solution is generated.\}}
+            {\color{red}\{The sentence for which a step-by-step solution is generated.\}}\\
+            Logical Form:\\
+            {\color{red}\{The ground truth logical form of the sentence, for which a step-by-step solution is generated.\}}
         }
         \caption{The prompt used to generate a step-by-step solution for a sentence, based on the general guide.}
         \label{fig:prompt_generate_cot_solution}
@@ -373,7 +422,7 @@ Step 5: Represent the logical form cat ( 1 ); *strawberry ( 2 ); pedestal ( 3 );
         \end{verbatim}
         \caption{The step-by-step solution generated by GPT-4 for the sentence
         "A cat lended the strawberry on a pedestal to a boy."}
-        \label{fig:gpt4_guide}
+        \label{fig:gpt4_cot_solution_example}
     \end{figure*}
 
     \begin{figure*}
@@ -389,7 +438,7 @@ Step 5: Represent the logical form cat ( 1 ); *strawberry ( 2 ); pedestal ( 3 );
             \\
             -----\\
             Step by step guide and demonstration:\\
-            {\color{red}\{The step-by-step guide generated by GPT-4 is inserted here (see fig. \ref{fig:recogs_guide})\}}\\
+            {\color{red}\{The step-by-step guide generated by GPT-4 is inserted here (see fig. \ref{fig:gpt4_recogs_guide})\}}\\
             \\
             -----\\
             Sentence to convert:\\
