@@ -26,6 +26,7 @@
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{eurosym}
 
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
@@ -85,7 +86,7 @@
     Literature related to this topic can be found in\cite{chen_learning_2023, chen_fireact_2023}.
 
 
-    \section{Data}
+    \section{Data}\label{sec:data}
 %    Likely to be very detailed if the datasets are new or unfamiliar to the community, or if familiar datasets are being used in new ways.
 
     The core hypotheses of this project can be stated as follows:
@@ -211,6 +212,7 @@
     for $D_\mathrm{train}^\prime$.
     Interestingly, the durations for generating the evaluation samples on $D_\mathrm{eval}$ and $D_\mathrm{eval}^\prime$
     are in the same order of magnitude as the fine-tuning.
+    The total costs of prompting GPT-4 and for fine-tuning and generation using T4 GPUs on Google Colab, amount to $\sim 10$ \euro.
 
     For the evaluation on $D_\mathrm{eval}$, the generated logical forms are simply taken as is and compared to the ground
     truth using the exact-match metric mentioned in \ref{S:methods}.
@@ -218,35 +220,13 @@
     interpreted as the logical form.
     Apart from this, the evaluation is the same as for $D_\mathrm{eval}$.
 
-    The results of the evaluation are visualized in figures  \ref{fig:acc_vs_data_and_epoch} and  \ref{fig:acc_vs_token}.
-%    Unfortunately the results so far do not provide strong support for the hypothesis stated in section \ref{S:hypothesis}.
-%    Even though the models trained on $D^\prime$ show better performance on very small fine-tuning datasets and in early
-%    epochs, this advantage vanishes for larger --- but still small --- training datasets.
-%
-%    However, the results are interesting and informative, and allow for a thorough discussion and analysis.
-%    So far, there are no critical blockers in sight and the most important parts including the generation of the derived
-%    dataset and fine-tuning are already done.
-%
-%    The next steps of the project will focus on writing the final report and a careful analysis of the results so far.
-%    They can be summarized as:
-%    \begin{itemize}
-%        \item Perform a detailed analysis of the results.
-%        \item Evaluate the performance of the approach with step-by-step prompt without any fine-tuning
-%        and add it to the visualizations.
-%        \item Analyse the performance with respect to the number of tokens used for training.
-%        \item Compare the costs and fine-tuning durations of the different fine-tuning regimes.
-%        \item Add a discussion on the pros and cons of the approach discussed in this project. Which applications might
-%        benefit from this approach?
-%    \end{itemize}
+    The results of the evaluation are visualized in figures  \ref{fig:acc_vs_data_and_epoch} and  \ref{fig:acc_vs_token},
+    where the accuracies based on the exact-match metric are shown for the two different fine-tuning datasets.
 
     \begin{figure*}
         \centering
-        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_epoch.pdf}
-%        \caption{The accuracy of the Mistral-7B models at different points during the fine-tuning.
-%        \emph{Base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
-%        refers to the CoT-enhanced dataset $D^\prime$.
-%        }
-        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_data.pdf}
+        \includegraphics[width=0.49\linewidth]{../plots/accuracy_vs_epoch.pdf}
+        \includegraphics[width=0.49\linewidth]{../plots/accuracy_vs_data.pdf}
         \caption{
             \textbf{Left:} the accuracy of the Mistral-7B models at different points during the fine-tuning.
             \textbf{Right:} the accuracy of the Mistral-7B models with respect to the size of the dataset used for fine-tuning.\\
@@ -256,49 +236,128 @@
         \label{fig:acc_vs_data_and_epoch}
     \end{figure*}
 
-
-    \section{Analysis}
-
-    Discussion of what the results mean, what they don’t mean, where they can be improved, etc. These sections vary a lot depending on the nature of the paper. (For papers reporting on experiments with multiple datasets, it can be good to repeats Methods/Results/Analysis in separate (sub)sections for each dataset.)
-
     \begin{figure*}
         \centering
-        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_epochtoken.pdf}
-%        \caption{The accuracy of the Mistral-7B models at different points during the fine-tuning.
-%        \emph{Base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
-%        refers to the CoT-enhanced dataset $D^\prime$.
-%        }
-        \includegraphics[width=0.45\linewidth]{../plots/accuracy_vs_trainingtoken.pdf}
+        \includegraphics[width=0.49\linewidth]{../plots/accuracy_vs_epochtoken.pdf}
+        \includegraphics[width=0.49\linewidth]{../plots/accuracy_vs_trainingtoken.pdf}
         \caption{
-            \textbf{Left:} the accuracy of the Mistral-7B models at different points during the fine-tuning.
-            \textbf{Right:} the accuracy of the Mistral-7B models with respect to the size of the dataset used for fine-tuning.\\
+            \textbf{Left:} the accuracy of the Mistral-7B models with respect to the total number of tokens used for fine-tuning.
+            \textbf{Right:} the accuracy of the Mistral-7B models with respect to the total number of tokens in the
+            dataset used for fine-tuning.\\
             In both plots \emph{base} refers to the standard ReCOGS dataset after renumbering and \emph{guide}
             refers to the CoT-enhanced dataset $D^\prime$. The latter case is shown by the dashed lines.
         }
         \label{fig:acc_vs_token}
     \end{figure*}
 
-    \section{Conclusion}
 
-    Quickly summarize what the paper did, and then chart out possible future directions that anyone might pursue.
+    \section{Analysis}
+%    Discussion of what the results mean, what they don’t mean, where they can be improved, etc. These sections vary a lot depending on the nature of the paper. (For papers reporting on experiments with multiple datasets, it can be good to repeats Methods/Results/Analysis in separate (sub)sections for each dataset.)
+    The plots in figures \ref{fig:acc_vs_data_and_epoch} and \ref{fig:acc_vs_token} approach the results from two angles.
+    Figure \ref{fig:acc_vs_data_and_epoch} focuses on the sample-efficiency, and figure \ref{fig:acc_vs_token} on the
+    token-efficiency of the fine-tuning.
 
+    The following insights can be learned from figure \ref{fig:acc_vs_data_and_epoch}:
     \begin{itemize}
-        \item Focus on GPT-4. What about self generated CoT?
-        \item Low statistics
-        \item Investigation for bigger training and testing data
-        \item Investigate on another dataset
+        \item The approach using CoT-style reasoning based on the guide and an associated prompt, has an advantage even
+        without fine-tuning.
+        Nevertheless, the overall performance at this stage is very low.
+        \item This advantage is kept and in part even improved upon for fine-tuning dataset sizes up to 100 samples.
+        \item Above the 100 samples of training data, the advantage vanishes.
+        For 170 samples, there is no difference in performance even for a single epoch of fine-tuning.
     \end{itemize}
 
-    \section*{Known Project Limitations}
+    One interpretation of these results is, that by employing the step-by-step solution, it is easier for the model to
+    learn the necessary logic and rules.
+    This is because it does not have to represent the full logic in the layers of the model, but can also rely on a sort of
+    state-machine like program during the generation via the step-by-step solution.
+    In addition, the rules do not have to be fully inferred during fine-tuning, but are partly already provided by the guide.
+    At least for the ReCOGS dataset this shows, that for smaller dataset sizes, fine-tuning using a guide is
+    more sample efficient.
 
-    For this section, imagine that your reader is a well-intentioned NLP practitioner who is seeking to make use of your data, models, or findings as part of a separate scholarly project, deployed system, or some other kind of real-world intervention. What should such a person know about your work? Especially important here are limitations and biases that might affect this person, their findings, their experiment participants, or the users of their product or service. The idea is that what you say here will be taken into consideration but this well-intentioned user, leading to better outcomes for everyone.
+    The plots in figure \ref{fig:acc_vs_token} help to analyse these results from another angle.
+    Here, the evaluation accuracies are shown again, but this time once with respect to the number of tokens in the fine-tuning
+    dataset and once with respect to the total number of tokens used for training.
+    The latter is simply the number of tokens in the training dataset times the number of fine-tuning epochs.
+    From these plots it can be seen, that even though using a guide is more sample efficient for smaller datasets,
+    it is also much more expensive with respect to the total number of tokens.
+
+
+    \section{Conclusion}\label{sec:conclusion}
+    This work investigates, whether the inclusion of step-by-step reasoning can improve the efficiency of fine-tuning
+    models to specific tasks.
+    For the specific dataset in consideration, this hypothesis seems to hold for small training datasets.
+    Nevertheless, the effect vanishes for larger training datasets.
+    It is also noteworthy, that the improvement comes at the cost of a much larger dataset size with respect to the tokens
+    needed for training.
+    This in turn translates directly into increased compute costs, which not only applies to the training of the models,
+    but also to inference, since the prompt involving the guide is needed there as well.
+
+    Whether the approach described in this work provides a benefit, therefore depends on different aspects of the task at hand:
+    \begin{itemize}
+        \item The number of samples available for training
+        \item Expectations towards the performance of the models
+        \item Whether the resulting model will be heavily used for generation
+    \end{itemize}
+    The conclusion of this work with regard to the hypothesis stated in \ref{sec:data} is therefore, that this method
+    can help for specific cases, especially is there is very little training data available.
+
+    There are several lines of possible future research, that could not be covered in the scope of this project:
+    \begin{itemize}
+        \item Testing the aforementioned hypothesis on the ReCOGS dataset alone, only provides very limited insights into
+        the general suitability of this method.
+        It would be very interesting, whether the results seen in this work generalize to other datasets.
+        \item Similar to the work by \cite{chen_learning_2023}, it would be interesting to analyse the versatility of the
+        models after fine-tuning.
+        It seems plausible for example, that the models trained directly on the ReCOGS pairs become expert models, that
+        are not well suited for any other tasks beside ReCOGS anymore.
+        For the models trained using the step-by-step guide, this might not, or at least to a lesser extent, be the case.
+        This could be relevant for applications.
+        \item It could also be interesting to compare the performance of few-shot prompting with the results of fine-tuning
+        for the base and the guided approach.
+        For example, it would be interesting to see, whether the performance of few-shot prompting with a training dataset
+        of 10 samples is comparable to fine-tuning on the same dataset.
+        \item Another interesting study would be to fine-tune different models apart from the one used here.
+        Especially seeing the influence of different model sizes could provide additional insights.
+    \end{itemize}
+
+%    Quickly summarize what the paper did, and then chart out possible future directions that anyone might pursue.
+%
+%    \begin{itemize}
+%        \item Focus on GPT-4. What about self generated CoT?
+%        \item Low statistics
+%        \item Investigation for bigger training and testing data
+%        \item Investigate on another dataset
+%        \item Investigate how base-guide fine-tuning influences generatlity of model
+%    \end{itemize}
+
+    \section*{Known Project Limitations}
+    Given the limited budget of time, compute and manpower for this project there are several limitations to the claims
+    concerning the stated hypothesis.
+
+    An important limitation is the lack of statistics on the datapoints shown in figures
+    \ref{fig:acc_vs_data_and_epoch} and \ref{fig:acc_vs_token}, which is due to a limitation of compute resources.
+    Especially for the very small training dataset of 10 samples, it can be expected to see some variation depending on
+    the actual sample drawn, for which there is currently no data available.
+
+    Another limitation is the focus on the ReCOGS dataset alone.
+    As already mentioned in the previous section \ref{sec:conclusion}, seeing results on other dataset would provide
+    important evidence on the generality of the results seen in this work.
+
+    The used prompts, which are shown in the appendix, are another source of possible variability, that is not well studied in
+    this work.
+    It might very well be, that the results change significantly for a specific wording in the step-by-step guide, which
+    occurs randomly when prompting GPT-4.
+%    For this section, imagine that your reader is a well-intentioned NLP practitioner who is seeking to make use of your data, models, or findings as part of a separate scholarly project, deployed system, or some other kind of real-world intervention. What should such a person know about your work? Especially important here are limitations and biases that might affect this person, their findings, their experiment participants, or the users of their product or service. The idea is that what you say here will be taken into consideration but this well-intentioned user, leading to better outcomes for everyone.
 
 
     \section*{Authorship Statement}
-
-    Explain how the individual authors contributed to the
-    project. You are free to include whatever information you deem important to convey. For ideas and a model see \url{http://blog.pnas.org/iforc.pdf} (p.~12).
-    This statement is required even for singly-authored papers, because we want to know whether your project is a collaboration with people outside of the class. Our rationale for this section is that we think this is an important aspect of scholarship in general. Only in extreme cases, and after discussion with the team, would we consider giving separate grades to team members based on this statement.
+    The work described in this paper was done solely by myself.
+    While I teamed up on another topic for the literature review, this project was done on my own, and is based on ideas
+    I developed during assignment three.
+    I did not have any outside help or support, whether it was during the implementation or the writing of this paper.
+    I did however rely on a number of very helpful tutorials for the implementation of the fine-tuning of the Mistral-7B
+    model \cite{unsloth_unslothmistral-7b-instruct-v02-bnb-4bit_2024, labonne_fine-tune_2024}.
 
 % Entries for the entire Anthology, followed by custom entries
     \bibliography{anthology,custom,julian}
