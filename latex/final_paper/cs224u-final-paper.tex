@@ -43,7 +43,15 @@
 \begin{document}
     \maketitle
     \begin{abstract}
-        Brief statement providing context for your ideas, and then a high-level summary of what you did and its significance. This is a required section.
+        This project investigates an approach combining fine-tuning with chain-of-though like prompting.
+        The hypothesis is, that the performance and sample efficiency of fine-tuning can be improved, by providing
+        step-by-step solutions in the training data used for fine-tuning.
+        A detailed approach is developed and described, included all necessary prompts and intermediate steps.
+        The hypothesis is then tested on the ReCOGS dataset, where a partial support of the claim is found for smaller
+        training datasets.
+        The advantage of the methods is found to vanish for larger training datasets.
+        The code underlying this paper can be found at \url{https://github.com/julianfesel/cs224u_final_project}.
+%        Brief statement providing context for your ideas, and then a high-level summary of what you did and its significance. This is a required section.
     \end{abstract}
 
 
@@ -58,7 +66,7 @@
     Most of these decisions follow guidelines that define which trains must be prioritized under which circumstances.
 
     These guidelines can be quite extensive and intricate and the decisions must be made quickly.
-    It is therefore of interest, to try to use LLMs to support the operatives in this task, by providing decision
+    It is therefore of interest, whether LLMs can be used to support the operatives in this task, by providing decision
     recommendations based on the guidelines and a description of the current situation.
 
     Since the data that would be necessary to work on this topic is currently not available, this project aims to
@@ -71,19 +79,52 @@
     \end{enumerate}
 
     The main idea of this project is inspired by approaches I already used in assignment three.
-    There I tried to improve the performance of few-shot prompting by introducing a dataset specifiv step-by-step guide.
+    There I tried to improve the performance of few-shot prompting, by introducing a dataset specific step-by-step guide.
     This guide was created by GPT-4 based on 10 given examples.
-    Based on this guide the examples used for few-shot prompting where enriched by a step-by-step solution based on the guide.
-    This resulted in dataset specific chain-of-though like reasoning that was introduced into the prompt.
+    Based on this guide, the examples used for few-shot prompting where enriched by a step-by-step solution, based on the guide.
+    This resulted in dataset specific chain-of-though like reasoning, that was introduced into the prompt.
 
-    It was very interesting for me to see, that this in context learning approache still performed much worse than
+    It was very interesting for me to see, that this in context learning approach still performed much worse than
     approaches by other students based on fine-tuning.
     This leads me to the question, whether enriching a dataset by a guide and CoT-style logic helps during fine-tuning,
     which is now the topic of this project.
 
 
     \section{Prior Literature}
-    Literature related to this topic can be found in\cite{chen_learning_2023, chen_fireact_2023}.
+    While there is no literature directly related to the work described in this paper, there is work discussing related ideas.
+
+    \cite{chen_fireact_2023} discusses and quantifies the benefits of fine-tuning language
+    agents in contrast to the use of few-shot prompting techniques.
+    The motivation is, that off-the-shelf LMs --- open-source LMs in particular --- are usually not optimized for agentic use-cases.
+    For this they propose a new method they call FireAct, which unifies fine-tuning with agent trajectories from
+    multiple prompt methods and tasks in the ReAct format \cite{yao_react_2023}.
+    The agent trajectory data is generated using GPT-4 and based on four open-source datasets:
+    HotpotQA \cite{yang_hotpotqa_2018}, Bamboogle \cite{press_measuring_2023}, StrategyQA \cite{geva_did_2021} and
+    MMLA \cite{hendrycks_measuring_2021}.
+    For fine-tuning they mostly use LoRa \cite{hu_lora_2021}, but also give some comparisons to full-model fine-tuning.
+
+    Amongst others, their most interesting findings are that:
+    \begin{enumerate}
+      \item Small, fine-tuned models like Llama-2-13B can outperform prompted GPT-3.5, given enough diverse training data.
+      \item Fine-tuning increases relative performance by up $77\,\%$ for small models like Llama-2-7B and $25\,\%$ for GPT-3.5
+      \item While being computationally expensive, full-model fine-tuning of Llama-2-7B increases relative performance by further $15.3\,\%$ in comparison to LoRa.
+      \item GPT-3.5 reaches most of its training gain with only 100 samples, while the tested open-source models need around 500 samples
+    \end{enumerate}
+
+    In\cite{chen_learning_2023} the authors discuss possibilities to empower LLMs with logical reasoning, which is a known
+    weakness of current models.
+    For this they test different approaches based on prompting techniques and fine-tuning of the models, to enhance the
+    performance on the MAVEN-ERE and ProofWriter datasets \cite{tafjord_proofwriter_2021, wang_maven-ere_2022}.
+    These datasets test the models ability in deductive logical reasoning and event relation extraction.
+
+    Their most relevant findings for the work in this paper are the following:
+    \begin{itemize}
+        \item Including logical constraints in prompts can reduce the number of demonstrations needed for equal performance
+        in few shot prompting.
+        \item Creating a new synthesized dataset with that includes multi-hop logical reasoning, improves models fine-tuned
+        on it.
+        On some tasks, this even improves small 7B models beyond the capabilities of larger 175B models like ChatGPT.
+    \end{itemize}
 
 
     \section{Data}\label{sec:data}
